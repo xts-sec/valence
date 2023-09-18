@@ -11,24 +11,25 @@
 
 //
 // Define Colour Profiles
+// Uncomment as used to keep compiled size down
 //
 #define RESET   "\033[0m"
-#define BLACK   "\033[30m"      /* Black */
+//#define BLACK   "\033[30m"      /* Black */
 #define RED     "\033[31m"      /* Red */
 #define GREEN   "\033[32m"      /* Green */
-#define YELLOW  "\033[33m"      /* Yellow */
+//#define YELLOW  "\033[33m"      /* Yellow */
 #define BLUE    "\033[34m"      /* Blue */
-#define MAGENTA "\033[35m"      /* Magenta */
-#define CYAN    "\033[36m"      /* Cyan */
-#define WHITE   "\033[37m"      /* White */
-#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
-#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
-#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
-#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
-#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
-#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
-#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
-#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+//#define MAGENTA "\033[35m"      /* Magenta */
+//#define CYAN    "\033[36m"      /* Cyan */
+//#define WHITE   "\033[37m"      /* White */
+//#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+//#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+//#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+//#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+//#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+//#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+//#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+//#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 // define token delimiters
 #define TOKEN_DELIM " \t\r\n"
@@ -40,8 +41,47 @@ char **split_line(char *);
 int valence_execute(char **);
 
 // declarations for builtin shell functions
-int valence_exit(char **args );
+int valence_exit();
 int valence_cd(char **args);
+int valence_help();
+
+
+//  List of builtin command names
+char *builtin_names[] = {
+	"help 	- display this help info",
+	"cd 	- change current working directory",
+	"exit 	- kill this shell"
+};
+
+// list of builtin command functions
+int (*builtin_functions[]) (char **) = {
+  &valence_help,
+  &valence_cd,
+  &valence_exit
+};
+
+// calculate the number of builtin command names
+int valence_num_builtins() {
+  return sizeof(builtin_names) / sizeof(char *);
+}
+
+//
+// name: valence_help
+// desc: display halp info to user, including built in command list
+// args: none
+int valence_help(){
+	fprintf(stdout, GREEN "#################################################\n");
+	fprintf(stdout, "# valence shell - made by xts-sec               #\n");
+	fprintf(stdout, "# PRE_RELEASE VERSION - WORK IN PROGRESS        #\n");
+	fprintf(stdout, "#################################################\n" RESET);
+	fprintf(stdout, "Built in commands:\n");
+	for(int i = 0; i < valence_num_builtins(); i++) {
+    	printf("  %s\n", builtin_names[i]);
+  	}
+  	printf("Use the man command for information on other programs.\n");
+  	return 1;
+}
+
 
 
 //
@@ -49,7 +89,7 @@ int valence_cd(char **args);
 // desc: cleanly exits the shell by returning 0
 // args: character array "args"
 //
-int valence_exit(char **args) {
+int valence_exit() {
   return 0;
 }
 
@@ -85,9 +125,11 @@ int valence_execute(char **args) {
   	int status;
 
   if (strcmp(args[0], "exit") == 0) {
-    return valence_exit(args);
+    return valence_exit();
   } else if (strcmp(args[0], "cd") == 0){
   	return valence_cd(args);
+  } else if (strcmp(args[0], "help") == 0){
+  	return valence_help();
   }
 
   cpid = fork();
