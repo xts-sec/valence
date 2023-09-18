@@ -179,7 +179,7 @@ void loop() {
 
 	do {
 		getcwd(cwd, DEFAULT_BUFFER_SIZE);
-		printf("valence: %s » ", cwd);
+		printf("valence: " BLUE "%s " RESET  "» ", cwd);
     	line = read_line();
     	args = split_line(line);
     	status = valence_execute(args);
