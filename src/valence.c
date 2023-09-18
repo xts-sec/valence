@@ -34,17 +34,60 @@
 #define TOKEN_DELIM " \t\r\n"
 #define DEFAULT_BUFFER_SIZE 1024
 
+// declarations for backend functions
 char *read_line();
 char **split_line(char *);
-int valence_exit(char **);
 int valence_execute(char **);
 
+// declarations for builtin shell functions
+int valence_exit(char **args );
+int valence_cd(char **args);
+
+
+//
+// name: valence_exit
+// desc: cleanly exits the shell by returning 0
+// args: character array "args"
+//
+int valence_exit(char **args) {
+  return 0;
+}
+
+//
+// name: valence_cd
+// desc: changes the current working directory
+// args: character array "args"
+int valence_cd(char **args){
+	
+	if (args[1] == NULL) {
+		//fprintf(stderr, RED "valence: argument expected\n" RESET);
+		fprintf(stderr, GREEN "valence: cd: no argument provided, going home\n" RESET);
+		chdir(getenv("HOME"));
+	 } else {
+	 	if (chdir(args[1]) != 0) {
+			fprintf(stderr, RED "valence: cd: invalid driectory\n" RESET);
+	    }
+	}
+	return 1;
+}
+
+
+
+//
+// name: valence_execute
+// desc: forks a new child process and runs a command
+// args: character array "args"
+//
 int valence_execute(char **args) {
-  pid_t cpid;
-  int status;
+
+	// 
+  	pid_t cpid;
+  	int status;
 
   if (strcmp(args[0], "exit") == 0) {
     return valence_exit(args);
+  } else if (strcmp(args[0], "cd") == 0){
+  	return valence_cd(args);
   }
 
   cpid = fork();
@@ -62,9 +105,7 @@ int valence_execute(char **args) {
   return 1;
 }
 
-int valence_exit(char **args) {
-  return 0;
-}
+
 
 char **split_line(char * line) {
   int buffsize = DEFAULT_BUFFER_SIZE;
@@ -110,7 +151,7 @@ char *read_line() {
 
   while (1) {
     c = getchar();
-    if (c == 'r' || c == '\n') {
+    if (c == '\r' || c == '\n') {
       buffer[position] = '\0';
       return buffer;
     } else {
@@ -131,18 +172,20 @@ char *read_line() {
 }
 
 void loop() {
-  char *line;
-  char **args;
-  int status = 1;
+	char *line;
+	char **args;
+	int status = 1;
+	char *cwd = malloc(sizeof(char) *  DEFAULT_BUFFER_SIZE);
 
-  do {
-    printf("valence » ");
-    line = read_line();
-    args = split_line(line);
-    status = valence_execute(args);
-    free(line);
-    free(args);
-  } while (status);
+	do {
+		getcwd(cwd, DEFAULT_BUFFER_SIZE);
+		printf("valence: %s » ", cwd);
+    	line = read_line();
+    	args = split_line(line);
+    	status = valence_execute(args);
+    	free(line);
+    	free(args);
+  	} while (status);
 }
 
 int main() {
