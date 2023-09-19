@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 //
 // Define Colour Profiles
 // Uncomment as used to keep compiled size down
@@ -29,25 +30,35 @@
 //#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
 //#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 //#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+
 // define token delimiters
 #define TOKEN_DELIM " \t\r\n"
 #define DEFAULT_BUFFER_SIZE 1024
+
 // declarations for backend functions
 char  * read_line();
 char **split_line(char  * );
 int valence_execute(char **);
+
 // declarations for builtin shell functions
 int valence_exit();
 int valence_cd(char **args);
 int valence_help();
+
 //  List of builtin command names
 char  * builtin_names[] = {
-    "help 	- display this help info", "cd 	- change current working directory", "exit 	- kill this shell"
+    "help",
+    "cd",
+    "exit"
 };
+
 // list of builtin command functions
 int ( * builtin_functions[]) (char **) = {
-    &valence_help, &valence_cd, &valence_exit
+    &valence_help,
+    &valence_cd,
+    &valence_exit
 };
+
 // calculate the number of builtin command names
 int valence_num_builtins() {
     return sizeof(builtin_names)  /  sizeof(char  * );
@@ -61,15 +72,17 @@ int valence_help() {
     fprintf(stdout, GREEN "#################################################\n");
     fprintf(stdout, "# valence shell - made by xts-sec               #\n");
     fprintf(stdout, "# PRE_RELEASE VERSION - WORK IN PROGRESS        #\n");
-    fprintf(stdout, "#################################################\n" RESET);
-    fprintf(stdout, "Built in commands:\n");
+    fprintf(stdout, "#################################################\n\n" RESET);
+    
+    fprintf(stdout, "Built in commands:\n\n");
+    
     for(int i = 0;
     i < valence_num_builtins();
     i++) {
         printf("  %s\n", builtin_names[i]);
     }
 
-    printf("Use the man command for information on other programs.\n");
+    printf("\nUse the man command for information on other programs.\n\n");
     return 1;
 }
 
@@ -112,14 +125,14 @@ int valence_execute(char **args) {
     int status;
     if (args[0] == NULL)  {
         return 1;
-    } else if (strcmp(args[0], "exit") == 0)  {
-        return valence_exit();
-    } else if (strcmp(args[0], "cd") == 0)  {
-        return valence_cd(args);
-    } else if (strcmp(args[0], "help") == 0)  {
-        return valence_help();
     }
 
+    for (int i = 0; i < valence_num_builtins(); i++) {
+    	if (strcmp(args[0], builtin_names[i]) == 0) {
+          	return (*builtin_functions[i])(args);
+        }
+    }
+      
     cpid = fork();
     if (cpid == 0)  {
         if (execvp(args[0], args) < 0) 
